@@ -1,0 +1,2302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Itinerary Planner — Master Blueprint & UI Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<style>
+  :root {
+    --bg-main: #070B14;
+    --bg-card: #0F172A;
+    --bg-card-hover: #162238;
+    --bg-input: #0B1120;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-accent: rgba(45, 212, 191, 0.3);
+    
+    --text-main: #F1F5F9;
+    --text-muted: #8899AC;
+    --text-dim: #54667A;
+    
+    --teal: #2DD4BF;
+    --teal-glow: rgba(45, 212, 191, 0.2);
+    --emerald: #10B981;
+    --emerald-glow: rgba(16, 185, 129, 0.2);
+    --amber: #F59E0B;
+    --amber-glow: rgba(245, 158, 11, 0.2);
+    --rose: #F43F5E;
+    --indigo: #6366F1;
+    --violet: #8B5CF6;
+    --blue: #38BDF8;
+
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--bg-main);
+    background-image: 
+      radial-gradient(circle at 15% 10%, rgba(45, 212, 191, 0.07) 0%, transparent 40%),
+      radial-gradient(circle at 85% 85%, rgba(99, 102, 241, 0.07) 0%, transparent 40%),
+      linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 28px 28px, 28px 28px;
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    padding-bottom: 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Container */
+  .app-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 24px 20px;
+  }
+
+  /* Header Section */
+  .hero-header {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--teal);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.7);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(45, 212, 191, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0); }
+  }
+
+  h1.hero-title {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #FFFFFF 30%, #CBD5E1 70%, var(--teal) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-desc {
+    color: var(--text-muted);
+    font-size: 15px;
+    max-width: 780px;
+    line-height: 1.5;
+    margin-top: 4px;
+  }
+
+  .quick-stats {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .stat-badge {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .stat-label {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--teal);
+    font-family: var(--font-mono);
+  }
+
+  /* Navigation Hub Tabs */
+  .nav-tabs {
+    display: flex;
+    gap: 8px;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 6px;
+    backdrop-filter: blur(12px);
+    margin-bottom: 28px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+  .tab-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .tab-btn.active {
+    background: var(--teal);
+    color: #041017;
+    box-shadow: 0 4px 14px var(--teal-glow);
+  }
+  .tab-icon {
+    font-size: 15px;
+  }
+
+  /* Tab View Sections */
+  .view-section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .view-section.active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===================================================
+     TAB 1: LIVE UI PROTOTYPE (SIMULATED APPLICATION)
+     =================================================== */
+  .proto-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 960px) {
+    .proto-container { grid-template-columns: 1fr; }
+  }
+
+  .proto-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Simulated Trip Search Header */
+  .trip-search-box {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .trip-meta-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .tag-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .tag-pill.active {
+    background: var(--teal-glow);
+    border-color: var(--teal);
+    color: var(--teal);
+  }
+
+  /* Weather Alert Banner */
+  .weather-alert-card {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(244, 63, 94, 0.08));
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .weather-alert-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .weather-icon {
+    font-size: 26px;
+  }
+  .weather-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #FCD34D;
+  }
+  .weather-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .btn-sim-weather {
+    background: #F59E0B;
+    color: #1A0F00;
+    border: none;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-sim-weather:hover {
+    background: #FBBF24;
+    transform: scale(1.02);
+  }
+
+  /* Day Selector Tabs in Prototype */
+  .day-tabs-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+  }
+  .day-tab-btn {
+    flex: 1;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-muted);
+  }
+  .day-tab-btn:hover {
+    border-color: var(--teal);
+    color: var(--text-main);
+  }
+  .day-tab-btn.active {
+    background: rgba(45, 212, 191, 0.08);
+    border-color: var(--teal);
+    color: var(--teal);
+  }
+  .day-tab-num {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .day-tab-theme {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Day Summary Strip */
+  .day-summary-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .day-summary-strip span strong {
+    color: var(--text-main);
+  }
+
+  /* Timeline & Stop Cards */
+  .stops-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+  }
+  .stops-timeline::before {
+    content: '';
+    position: absolute;
+    left: 18px;
+    top: 24px;
+    bottom: 24px;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .stop-card {
+    position: relative;
+    padding-left: 44px;
+    cursor: pointer;
+  }
+  .stop-pin {
+    position: absolute;
+    left: 7px;
+    top: 14px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 2px solid var(--teal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--teal);
+    z-index: 2;
+    transition: all 0.2s;
+  }
+  .stop-card:hover .stop-pin,
+  .stop-card.active .stop-pin {
+    background: var(--teal);
+    color: #000;
+    box-shadow: 0 0 12px var(--teal);
+    transform: scale(1.15);
+  }
+
+  .stop-inner {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    transition: all 0.2s;
+  }
+  .stop-card:hover .stop-inner,
+  .stop-card.active .stop-inner {
+    border-color: var(--border-accent);
+    background: var(--bg-card-hover);
+    transform: translateX(3px);
+  }
+  .stop-card.swapped .stop-inner {
+    border-color: var(--amber);
+    background: rgba(245, 158, 11, 0.05);
+  }
+
+  .stop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .stop-name {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  .stop-time-badge {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--teal);
+    background: var(--teal-glow);
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .stop-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .stop-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .badge-indoor { color: #38BDF8; background: rgba(56, 189, 248, 0.1); }
+  .badge-outdoor { color: #34D399; background: rgba(52, 211, 153, 0.1); }
+  .badge-swap { color: #F59E0B; background: rgba(245, 158, 11, 0.15); font-weight: 700; }
+
+  .stop-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .stop-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 11px;
+  }
+  .stop-link {
+    color: var(--teal);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .stop-link:hover { text-decoration: underline; }
+
+  /* Map Container */
+  .proto-map-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 520px;
+  }
+  .map-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .map-title {
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #itineraryMap {
+    width: 100%;
+    height: 100%;
+    min-height: 480px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: #0B1120;
+    z-index: 1;
+  }
+
+  /* ===================================================
+     TAB 2: ENHANCED 6-WEEK ROADMAP CHECKLIST
+     =================================================== */
+  .roadmap-controls {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+  }
+  .overall-progress-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .progress-title {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+  .progress-stat {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--teal);
+    font-weight: 700;
+  }
+  .bar-track {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--teal), var(--emerald));
+    width: 0%;
+    transition: width 0.4s ease;
+    box-shadow: 0 0 10px var(--teal-glow);
+  }
+
+  .filters-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .filter-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .f-pill {
+    font-size: 11.5px;
+    padding: 5px 11px;
+    border-radius: 20px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .f-pill:hover,
+  .f-pill.active {
+    background: rgba(45, 212, 191, 0.12);
+    border-color: var(--teal);
+    color: var(--teal);
+  }
+  .roadmap-action-btns {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-sm-action {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-sm-action:hover {
+    color: var(--text-main);
+    border-color: var(--text-muted);
+  }
+
+  /* Phases Accordion */
+  .phase-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .phase-block {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .phase-block.complete {
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+  .phase-block.active {
+    border-color: var(--border-accent);
+  }
+
+  .phase-header-btn {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    text-align: left;
+    user-select: none;
+  }
+  .phase-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .phase-status-indicator {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: transparent;
+    transition: all 0.2s;
+  }
+  .phase-block.complete .phase-status-indicator {
+    border-color: var(--emerald);
+    background: var(--emerald);
+    color: #000;
+    font-weight: 800;
+  }
+  .phase-block.active .phase-status-indicator {
+    border-color: var(--teal);
+    background: var(--teal-glow);
+    color: var(--teal);
+  }
+
+  .phase-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .phase-tag-text {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--teal);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .phase-main-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  .phase-header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .phase-count-badge {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .phase-chevron {
+    color: var(--text-dim);
+    font-size: 16px;
+    transition: transform 0.3s;
+  }
+  .phase-block.open .phase-chevron {
+    transform: rotate(90deg);
+    color: var(--teal);
+  }
+
+  .phase-items-container {
+    display: none;
+    padding: 0 20px 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+  }
+  .phase-block.open .phase-items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  /* Task Item */
+  .task-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .task-row:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  .task-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1.5px solid var(--text-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .task-row.checked .task-checkbox {
+    background: var(--emerald);
+    border-color: var(--emerald);
+    color: #000;
+  }
+  .task-row.checked .task-checkbox::after { content: '✓'; font-weight: 900; }
+
+  .task-content {
+    flex: 1;
+  }
+  .task-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .task-text {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-main);
+    line-height: 1.4;
+  }
+  .task-row.checked .task-text {
+    color: var(--text-dim);
+    text-decoration: line-through;
+  }
+  .task-cat-badge {
+    font-size: 9.5px;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 700;
+  }
+  .cat-backend { color: #38BDF8; background: rgba(56, 189, 248, 0.12); }
+  .cat-algo { color: #F59E0B; background: rgba(245, 158, 11, 0.12); }
+  .cat-frontend { color: #A78BFA; background: rgba(167, 139, 250, 0.12); }
+  .cat-api { color: #34D399; background: rgba(52, 211, 153, 0.12); }
+  .cat-viva { color: #F43F5E; background: rgba(244, 63, 94, 0.12); }
+
+  .task-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+  .viva-tip-box {
+    margin-top: 6px;
+    background: rgba(244, 63, 94, 0.08);
+    border-left: 3px solid #F43F5E;
+    padding: 6px 10px;
+    font-size: 11.5px;
+    color: #FDA4AF;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+
+  /* ===================================================
+     TAB 3: ALGORITHM LAB (K-MEANS & 2-OPT VISUALIZED)
+     =================================================== */
+  .algo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 900px) {
+    .algo-grid { grid-template-columns: 1fr; }
+  }
+
+  .algo-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+  }
+  .algo-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--amber);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .algo-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .algo-desc {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .canvas-wrapper {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    text-align: center;
+    position: relative;
+  }
+  canvas {
+    width: 100%;
+    height: 240px;
+    display: block;
+    background: #080D1A;
+    border-radius: var(--radius-sm);
+  }
+  .canvas-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+  }
+  .btn-algo-action {
+    background: var(--teal);
+    color: #041017;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 7px 14px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-algo-action:hover {
+    background: #5EEAD4;
+    transform: translateY(-1px);
+  }
+
+  .algo-takeaway {
+    margin-top: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-left: 3px solid var(--teal);
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: var(--text-main);
+  }
+  .algo-takeaway strong { color: var(--teal); }
+
+  /* ===================================================
+     TAB 4: ARCHITECTURE & DATABASE SCHEMAS
+     =================================================== */
+  .arch-flow-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .arch-diagram {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .arch-node {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    position: relative;
+    border-top: 3px solid var(--teal);
+  }
+  .arch-node.backend { border-top-color: var(--indigo); }
+  .arch-node.algo { border-top-color: var(--amber); }
+  .arch-node.db { border-top-color: var(--emerald); }
+
+  .arch-node-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .arch-node-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .arch-node-code {
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--teal);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px 6px;
+    border-radius: 4px;
+  }
+
+  .schemas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 800px) {
+    .schemas-grid { grid-template-columns: 1fr; }
+  }
+  .schema-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+  }
+  .schema-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .schema-name {
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--emerald);
+  }
+  pre.code-block {
+    background: #060A12;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #94A3B8;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  pre.code-block .k { color: #F43F5E; }
+  pre.code-block .s { color: #38BDF8; }
+  pre.code-block .t { color: #FBBF24; }
+
+  /* ===================================================
+     TAB 5: VIVA & DEFENSE PREP GUIDE
+     =================================================== */
+  .viva-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .viva-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    transition: all 0.2s;
+  }
+  .viva-card:hover {
+    border-color: rgba(244, 63, 94, 0.3);
+  }
+  .viva-q {
+    font-size: 15px;
+    font-weight: 700;
+    color: #FDA4AF;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .viva-badge {
+    background: rgba(244, 63, 94, 0.15);
+    color: #F43F5E;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .viva-ans {
+    font-size: 13px;
+    color: var(--text-main);
+    line-height: 1.55;
+    padding-left: 36px;
+  }
+  .viva-highlight {
+    color: var(--teal);
+    font-weight: 600;
+  }
+
+  /* Footer */
+  .app-footer {
+    text-align: center;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 12px;
+    font-family: var(--font-mono);
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Main Hero Header -->
+  <header class="hero-header">
+    <div class="hero-top">
+      <div>
+        <div class="hero-eyebrow">
+          <span class="pulse-dot"></span>
+          <span>BUILD SYSTEM // MERN + TSP ALGORITHM</span>
+        </div>
+        <h1 class="hero-title">Smart Itinerary Planner — Master Blueprint</h1>
+        <p class="hero-desc">
+          Automated multi-day travel planner with <strong>K-Means Day Clustering</strong>, <strong>2-Opt Route TSP Optimization</strong>, <strong>Weather-Adaptive Swapping</strong>, and <strong>Interactive Maps</strong>.
+        </p>
+      </div>
+
+      <div class="quick-stats">
+        <div class="stat-badge">
+          <span class="stat-label">ROADMAP PROGRESS</span>
+          <span class="stat-value" id="topProgressStat">0%</span>
+        </div>
+        <div class="stat-badge">
+          <span class="stat-label">TIMELINE</span>
+          <span class="stat-value" style="color: var(--amber);">6 WEEKS</span>
+        </div>
+        <div class="stat-badge">
+          <span class="stat-label">ALGORITHM</span>
+          <span class="stat-value" style="color: var(--blue);">K-MEANS + 2-OPT</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Switcher Tabs -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchView('protoView', this)">
+      <span class="tab-icon">✨</span>
+      <span>1. Live UI Prototype</span>
+    </button>
+    <button class="tab-btn" onclick="switchView('roadmapView', this)">
+      <span class="tab-icon">📋</span>
+      <span>2. 6-Week Roadmap Checklist</span>
+    </button>
+    <button class="tab-btn" onclick="switchView('algoView', this)">
+      <span class="tab-icon">⚡</span>
+      <span>3. Algorithm Lab (K-Means & 2-Opt)</span>
+    </button>
+    <button class="tab-btn" onclick="switchView('archView', this)">
+      <span class="tab-icon">📐</span>
+      <span>4. Architecture & Schemas</span>
+    </button>
+    <button class="tab-btn" onclick="switchView('vivaView', this)">
+      <span class="tab-icon">🎓</span>
+      <span>5. Viva & Defense Prep</span>
+    </button>
+  </nav>
+
+  <!-- ========================================================
+       VIEW 1: LIVE UI PROTOTYPE (THE FINAL APP SIMULATOR)
+       ======================================================== -->
+  <main id="protoView" class="view-section active">
+    
+    <!-- Search / Generation Banner -->
+    <div class="trip-search-box">
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="font-size: 20px;">📍</span>
+        <div>
+          <div style="font-size: 15px; font-weight: 700; color: #FFF;">Trip to Paris, France</div>
+          <div style="font-size: 12px; color: var(--text-muted);">Oct 14 - Oct 16 · 3 Days · Optimized with 2-Opt TSP</div>
+        </div>
+      </div>
+      <div class="trip-meta-tags">
+        <span class="tag-pill active">⚡ Moderate Pace</span>
+        <span class="tag-pill">🏛️ History & Arts</span>
+        <span class="tag-pill">💶 Budget: $$</span>
+        <button class="btn-algo-action" onclick="regeneratePrototypeData()" style="padding: 5px 12px; font-size: 11px;">
+          🔄 Re-run Optimizer
+        </button>
+      </div>
+    </div>
+
+    <!-- Weather Alert Simulation Banner -->
+    <div class="weather-alert-card" id="weatherAlertBanner">
+      <div class="weather-alert-left">
+        <span class="weather-icon" id="weatherIcon">🌦️</span>
+        <div>
+          <div class="weather-title" id="weatherTitle">Weather Awareness Engine Active</div>
+          <div class="weather-sub" id="weatherSub">Click the toggle to simulate an OpenWeather 85% Rain Forecast trigger and watch the Day 2 outdoor stop auto-swap!</div>
+        </div>
+      </div>
+      <button class="btn-sim-weather" id="btnWeatherToggle" onclick="toggleRainSimulation()">
+        Simulate Rain on Day 2 🌧️
+      </button>
+    </div>
+
+    <!-- Main Prototype Grid: Day Timeline + Leaflet Map -->
+    <div class="proto-container">
+      
+      <!-- Left Column: Day Tabs & Timeline Stops -->
+      <div class="proto-card">
+        
+        <!-- Day Selector Tabs -->
+        <div class="day-tabs-row">
+          <button class="day-tab-btn active" id="dayTab1" onclick="selectPrototypeDay(1)">
+            <span class="day-tab-num">DAY 01</span>
+            <span class="day-tab-theme">Historic Heart & Icons</span>
+          </button>
+          <button class="day-tab-btn" id="dayTab2" onclick="selectPrototypeDay(2)">
+            <span class="day-tab-num">DAY 02</span>
+            <span class="day-tab-theme" id="day2ThemeLabel">Art & Garden Walk</span>
+          </button>
+          <button class="day-tab-btn" id="dayTab3" onclick="selectPrototypeDay(3)">
+            <span class="day-tab-num">DAY 03</span>
+            <span class="day-tab-theme">Montmartre & Vistas</span>
+          </button>
+        </div>
+
+        <!-- Day Stats Strip -->
+        <div class="day-summary-strip">
+          <span>Stops: <strong id="protoStopsCount">4 Locations</strong></span>
+          <span>Transit: <strong id="protoTransitTime">~35 mins total</strong></span>
+          <span>Walking: <strong id="protoDistance">4.2 km</strong></span>
+          <span>Efficiency: <strong style="color: var(--emerald);">96% Optimal</strong></span>
+        </div>
+
+        <!-- Stop Cards Timeline List -->
+        <div class="stops-timeline" id="stopsTimelineList">
+          <!-- Dynamically populated by JS -->
+        </div>
+
+      </div>
+
+      <!-- Right Column: Leaflet Interactive Map -->
+      <div class="proto-card proto-map-wrapper">
+        <div class="map-header">
+          <div class="map-title">
+            <span>🗺️</span>
+            <span id="mapDayHeading">Day 1 Route (K-Means Cluster 1 — Paris Centre)</span>
+          </div>
+          <div style="font-size: 11px; font-family: var(--font-mono); color: var(--teal);">
+            Leaflet.js + OpenStreetMap
+          </div>
+        </div>
+        <div id="itineraryMap"></div>
+      </div>
+
+    </div>
+  </main>
+
+
+  <!-- ========================================================
+       VIEW 2: ENHANCED 6-WEEK ROADMAP CHECKLIST
+       ======================================================== -->
+  <section id="roadmapView" class="view-section">
+    
+    <div class="roadmap-controls">
+      <div class="overall-progress-row">
+        <span class="progress-title">OVERALL BUILD PROGRESS</span>
+        <span class="progress-stat"><span id="doneCount">0</span> / <span id="totalCount">0</span> TASKS (<span id="pctCount">0%</span>)</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" id="barFill"></div>
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-pills">
+          <button class="f-pill active" onclick="filterRoadmap('all', this)">All Tasks</button>
+          <button class="f-pill" onclick="filterRoadmap('algo', this)">⚡ Algorithm & Logic</button>
+          <button class="f-pill" onclick="filterRoadmap('backend', this)">⚙️ Backend & DB</button>
+          <button class="f-pill" onclick="filterRoadmap('frontend', this)">🎨 Frontend & Maps</button>
+          <button class="f-pill" onclick="filterRoadmap('viva', this)">🎓 Viva Tips</button>
+        </div>
+        <div class="roadmap-action-btns">
+          <button class="btn-sm-action" onclick="expandAllPhases(true)">Expand All</button>
+          <button class="btn-sm-action" onclick="expandAllPhases(false)">Collapse All</button>
+          <button class="btn-sm-action" onclick="resetProgress()" style="color: #FDA4AF;">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accordion Phases -->
+    <div class="phase-list" id="phasesContainer"></div>
+
+  </section>
+
+
+  <!-- ========================================================
+       VIEW 3: ALGORITHM LAB (VISUAL K-MEANS & 2-OPT TSP)
+       ======================================================== -->
+  <section id="algoView" class="view-section">
+    
+    <div class="algo-grid">
+      
+      <!-- K-Means Clustering Sandbox -->
+      <div class="algo-card">
+        <div class="algo-tag">Algorithm 1 of 2 // Spatial Partitioning</div>
+        <h2 class="algo-title">K-Means Day Clustering</h2>
+        <p class="algo-desc">
+          Groups tourist attractions geographically so the traveler visits nearby places on the same day instead of wasting hours commuting across town.
+        </p>
+
+        <div class="canvas-wrapper">
+          <canvas id="kmeansCanvas" width="400" height="240"></canvas>
+          <div class="canvas-controls">
+            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-muted);" id="kmeansStatus">
+              12 City Attractions · 3 Day Clusters
+            </span>
+            <button class="btn-algo-action" onclick="runKMeansVisual()">
+              Run K-Means Clustering ▶
+            </button>
+          </div>
+        </div>
+
+        <div class="algo-takeaway">
+          <strong>Why this matters for your Viva:</strong> Instead of randomly assigning stops, K-Means uses Euclidean/Haversine distance between coordinates $(lat, lng)$ to compute centroids for Day 1 (Teal), Day 2 (Amber), and Day 3 (Violet).
+        </div>
+      </div>
+
+      <!-- 2-Opt TSP Optimizer Sandbox -->
+      <div class="algo-card">
+        <div class="algo-tag">Algorithm 2 of 2 // Route Optimization</div>
+        <h2 class="algo-title">Nearest-Neighbour + 2-Opt TSP</h2>
+        <p class="algo-desc">
+          Once attractions are clustered for a single day, 2-Opt untangles the criss-crossing path by reversing sub-segments whenever it reduces total route distance.
+        </p>
+
+        <div class="canvas-wrapper">
+          <canvas id="tspCanvas" width="400" height="240"></canvas>
+          <div class="canvas-controls">
+            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-muted);" id="tspStatus">
+              Initial Route: Criss-Crossed Path
+            </span>
+            <button class="btn-algo-action" onclick="run2OptVisual()">
+              Untangle Route (2-Opt) ✂️
+            </button>
+          </div>
+        </div>
+
+        <div class="algo-takeaway">
+          <strong>Viva Tip:</strong> Brute force TSP takes $O(N!)$ which crashes on >10 stops. 2-Opt runs in milliseconds ($O(N^2)$) and eliminates wasteful backtracking.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Knapsack Constraint Logic -->
+    <div class="algo-card" style="margin-top: 24px;">
+      <div class="algo-tag">Constraint Layer // Time & Budget Allocation</div>
+      <h2 class="algo-title">Greedy Knapsack-Style Stop Filtering</h2>
+      <p class="algo-desc">
+        How the system fits attractions into an 8-hour sightseeing day without overwhelming the user:
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 14px;">
+        <div style="background: var(--bg-input); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+          <div style="font-size: 13px; font-weight: 700; color: var(--teal); margin-bottom: 4px;">1. Calculate Value Score</div>
+          <div style="font-size: 12px; color: var(--text-muted);">
+            Score = (Rating × User Preference Weight) / (Duration in hrs + Cost Factor)
+          </div>
+        </div>
+        <div style="background: var(--bg-input); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+          <div style="font-size: 13px; font-weight: 700; color: var(--amber); margin-bottom: 4px;">2. Check Opening Hours</div>
+          <div style="font-size: 12px; color: var(--text-muted);">
+            Discards attractions closed on that specific weekday before scheduling.
+          </div>
+        </div>
+        <div style="background: var(--bg-input); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+          <div style="font-size: 13px; font-weight: 700; color: var(--emerald); margin-bottom: 4px;">3. Fill Daily Budget Capacity</div>
+          <div style="font-size: 12px; color: var(--text-muted);">
+            Greedily packs top value stops until total duration + transit reaches the 8h target.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ========================================================
+       VIEW 4: ARCHITECTURE & DATABASE SCHEMAS
+       ======================================================== -->
+  <section id="archView" class="view-section">
+    
+    <!-- System Architecture Visual Diagram -->
+    <div class="arch-flow-box">
+      <div class="hero-eyebrow">SYSTEM BLUEPRINT // DATA FLOW</div>
+      <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 6px;">End-to-End MERN Flow</h2>
+      <p style="font-size: 13px; color: var(--text-muted);">How requests move from client UI through Express API, external caching, optimization engines, and MongoDB.</p>
+
+      <div class="arch-diagram">
+        <div class="arch-node">
+          <div class="arch-node-title"><span>💻</span> Client (React)</div>
+          <div class="arch-node-sub">Trip configuration form, Leaflet maps, day tabs, interactive stop cards.</div>
+          <div class="arch-node-code">POST /api/trips/generate</div>
+        </div>
+
+        <div class="arch-node backend">
+          <div class="arch-node-title"><span>🛡️</span> Express API Gateway</div>
+          <div class="arch-node-sub">JWT authentication, rate-limiting, error handling middleware.</div>
+          <div class="arch-node-code">verifyToken(req, res, next)</div>
+        </div>
+
+        <div class="arch-node algo">
+          <div class="arch-node-title"><span>🧠</span> Optimizer Engine</div>
+          <div class="arch-node-sub">K-Means Day Clusterer + 2-Opt TSP Router + Weather Swap Rules.</div>
+          <div class="arch-node-code">optimizeItinerary(places, days)</div>
+        </div>
+
+        <div class="arch-node db">
+          <div class="arch-node-title"><span>🍃</span> MongoDB Database</div>
+          <div class="arch-node-sub">Mongoose models for Users, Trips, and Cached Places to save API quota.</div>
+          <div class="arch-node-code">Trip.create(optimizedTrip)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mongoose Schemas Breakdown -->
+    <div class="schemas-grid">
+      
+      <!-- Trip Schema -->
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">models/Trip.js</span>
+          <span class="tag-pill">Mongoose Model</span>
+        </div>
+        <pre class="code-block">
+<span class="k">const</span> TripSchema = <span class="k">new</span> mongoose.Schema({
+  userId: { <span class="t">type:</span> mongoose.Schema.Types.ObjectId, <span class="t">ref:</span> <span class="s">'User'</span>, <span class="t">required:</span> <span class="k">true</span> },
+  destination: { <span class="t">type:</span> <span class="s">String</span>, <span class="t">required:</span> <span class="k">true</span> },
+  startDate: { <span class="t">type:</span> <span class="s">Date</span> },
+  daysCount: { <span class="t">type:</span> <span class="s">Number</span>, <span class="t">default:</span> 3 },
+  pace: { <span class="t">type:</span> <span class="s">String</span>, <span class="t">enum:</span> [<span class="s">'relaxed'</span>, <span class="s">'moderate'</span>, <span class="s">'packed'</span>] },
+  days: [{
+    dayNumber: <span class="s">Number</span>,
+    theme: <span class="s">String</span>,
+    weatherForecast: { condition: <span class="s">String</span>, rainProb: <span class="s">Number</span> },
+    stops: [{
+      placeId: <span class="s">String</span>,
+      name: <span class="s">String</span>,
+      location: { lat: <span class="s">Number</span>, lng: <span class="s">Number</span> },
+      timeSlot: <span class="s">String</span>,
+      durationMinutes: <span class="s">Number</span>,
+      isIndoor: <span class="s">Boolean</span>,
+      rating: <span class="s">Number</span>,
+      instagramUrl: <span class="s">String</span>
+    }]
+  }]
+}, { timestamps: <span class="k">true</span> });</pre>
+      </div>
+
+      <!-- Cached Place Schema -->
+      <div class="schema-card">
+        <div class="schema-header">
+          <span class="schema-name">models/PlaceCache.js</span>
+          <span class="tag-pill" style="color: var(--amber);">Crucial for Quota</span>
+        </div>
+        <pre class="code-block">
+<span class="k">const</span> PlaceCacheSchema = <span class="k">new</span> mongoose.Schema({
+  placeId: { <span class="t">type:</span> <span class="s">String</span>, <span class="t">unique:</span> <span class="k">true</span>, <span class="t">required:</span> <span class="k">true</span> },
+  city: { <span class="t">type:</span> <span class="s">String</span>, <span class="t">index:</span> <span class="k">true</span> },
+  name: <span class="s">String</span>,
+  location: { lat: <span class="s">Number</span>, lng: <span class="s">Number</span> },
+  types: [<span class="s">String</span>],
+  rating: <span class="s">Number</span>,
+  openingHours: [<span class="s">String</span>],
+  isIndoor: { <span class="t">type:</span> <span class="s">Boolean</span>, <span class="t">default:</span> <span class="k">false</span> },
+  cachedAt: { <span class="t">type:</span> <span class="s">Date</span>, <span class="t">default:</span> Date.now, <span class="t">expires:</span> <span class="s">'7d'</span> } <span class="c">// Auto-purge</span>
+});</pre>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ========================================================
+       VIEW 5: VIVA & DEFENSE PREP GUIDE
+       ======================================================== -->
+  <section id="vivaView" class="view-section">
+    
+    <div class="viva-container">
+      
+      <div class="viva-card">
+        <div class="viva-q">
+          <span class="viva-badge">Q1 · ALGORITHM</span>
+          <span>Why did you use K-Means for day planning instead of just sorting attractions?</span>
+        </div>
+        <div class="viva-ans">
+          Simple sorting by rating ignores geography, resulting in the user traversing the entire city multiple times a day. <span class="viva-highlight">K-Means clusters attractions by geographic coordinate proximity (lat, lng)</span>, guaranteeing that Day 1 is concentrated in one borough, Day 2 in another, minimizing transit overhead.
+        </div>
+      </div>
+
+      <div class="viva-card">
+        <div class="viva-q">
+          <span class="viva-badge">Q2 · TIME COMPLEXITY</span>
+          <span>What is the time complexity of 2-Opt and why not use exact Branch-and-Bound TSP?</span>
+        </div>
+        <div class="viva-ans">
+          Standard TSP brute-force is O(N!), which is NP-hard and crashes the Node.js event loop even for 12 places (12! = 479 million combinations). <span class="viva-highlight">2-Opt heuristic runs in polynomial time O(N²) per iteration</span>, yielding 95%+ optimal paths in under 5 milliseconds on typical daily stop sizes (N ≈ 4 to 7).
+        </div>
+      </div>
+
+      <div class="viva-card">
+        <div class="viva-q">
+          <span class="viva-badge">Q3 · RESILIENCY & BILLING</span>
+          <span>How do you handle Google Places API quotas and external service failures?</span>
+        </div>
+        <div class="viva-ans">
+          We implement a <span class="viva-highlight">2-Tier Caching Layer in MongoDB with a 7-day TTL index</span>. When a city search runs, we query our internal database first. Only missing POIs trigger upstream Google API calls. We also have mock JSON fallback seeds for live viva demos so the presentation never fails even if offline.
+        </div>
+      </div>
+
+      <div class="viva-card">
+        <div class="viva-q">
+          <span class="viva-badge">Q4 · REAL-WORLD LOGIC</span>
+          <span>How does the Weather-Adaptive swapping rule work?</span>
+        </div>
+        <div class="viva-ans">
+          When the user requests an itinerary, the backend checks OpenWeather 5-day forecast. If <span class="viva-highlight">Rain Probability > 60%</span> for a specific day, the optimizer flags outdoor stops (parks, open viewpoints) and swaps them with nearest high-rated indoor counterparts (museums, covered galleries, aquariums) tagged with <span class="viva-highlight">isIndoor: true</span>.
+        </div>
+      </div>
+
+      <div class="viva-card">
+        <div class="viva-q">
+          <span class="viva-badge">Q5 · SYSTEM DESIGN</span>
+          <span>How does "Regenerate Single Day" work without resetting the whole trip?</span>
+        </div>
+        <div class="viva-ans">
+          The endpoint <span class="viva-highlight">POST /api/trips/:id/regenerate-day</span> takes the target `dayNumber`, locks the places allocated to other days, pulls new candidate POIs from the pool, and re-executes 2-Opt TSP strictly on that single day array, updating only `trip.days[targetIndex]` in MongoDB.
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div>Itinerary Planner Master Blueprint & UI Prototype · Built for 6-Week Implementation & Viva Defense</div>
+  </footer>
+
+</div>
+
+<!-- ========================================================
+     APPLICATION LOGIC JAVASCRIPT
+     ======================================================== -->
+<script>
+/* ----------------------------------------------------
+   1. ROADMAP PHASES & TASKS DATA
+   ---------------------------------------------------- */
+const ROADMAP_DATA = [
+  {
+    id: 'p0',
+    tag: 'PHASE 00 — BEFORE WEEK 1',
+    title: 'Refresh Fundamentals',
+    items: [
+      { id: 'p0-1', cat: 'backend', t: 'JWT auth flow & middleware', n: 'Signup/login endpoints, bcrypt password hashing, protecting API routes with verifyToken.', v: 'Be ready to explain where JWT is stored (httpOnly cookie vs localStorage) and header format (Bearer token).' },
+      { id: 'p0-2', cat: 'backend', t: 'Express centralized error handling', n: 'Global error handling middleware (err, req, res, next) with custom APIError class.', v: 'Explain why unhandled promise rejections crash Node processes in production.' },
+      { id: 'p0-3', cat: 'backend', t: 'Mongoose schema design & indexing', n: 'Entity relations: User → Trip → DayPlan → PlaceItem, with 2dsphere indexes for lat/lng.', v: 'Explain ObjectId ref lookups vs embedded subdocuments.' },
+      { id: 'p0-4', cat: 'api', t: 'External API client & rate-limit handling', n: 'Axios instance with timeout, retry backoff, and local response caching.', v: 'Show why caching Google Places responses saves API costs.' },
+    ]
+  },
+  {
+    id: 'p1',
+    tag: 'PHASE 01 — WEEK 1',
+    title: 'Foundation Setup & Core Schemas',
+    items: [
+      { id: 'p1-1', cat: 'backend', t: 'Express + MongoDB connection set up', n: 'Environment variables with dotenv, connection pooling, graceful shutdown.', v: '' },
+      { id: 'p1-2', cat: 'backend', t: 'User, Trip & CachedPlace schemas built', n: 'Schemas with validation, timestamps, and indexes.', v: '' },
+      { id: 'p1-3', cat: 'backend', t: 'JWT auth endpoints tested with Postman', n: 'POST /api/auth/register and /api/auth/login verified with sample tokens.', v: '' },
+      { id: 'p1-4', cat: 'api', t: 'Google Places API key obtained & caching tested', n: 'Fetch POIs for Paris/Tokyo, store in MongoDB PlaceCache collection.', v: 'Viva tip: demonstrate cached hit time (<10ms) vs live API hit (>400ms).' },
+      { id: 'p1-5', cat: 'frontend', t: 'React app shell + routing initialized', n: 'Vite React setup, React Router for Home, Planner, TripView, and Login pages.', v: '' },
+    ]
+  },
+  {
+    id: 'p2',
+    tag: 'PHASE 02 — WEEK 2',
+    title: 'Core Algorithms — Clustering & 2-Opt Routing',
+    items: [
+      { id: 'p2-1', cat: 'algo', t: 'Implement K-Means clustering for days', n: 'Groups N attractions into K day clusters using geographic Euclidean distance.', v: 'Critical Viva Question: Why K-means is used and how centroids update.' },
+      { id: 'p2-2', cat: 'algo', t: 'Implement Nearest-Neighbour initial route', n: 'Greedy TSP starting from user hotel or central landmark to construct initial path.', v: '' },
+      { id: 'p2-3', cat: 'algo', t: 'Implement 2-Opt route untangling algorithm', n: 'Iterates through route edges, reversing 2-edge subpaths if total distance decreases.', v: 'Viva Demonstration: Show before/after path length reduction.' },
+      { id: 'p2-4', cat: 'algo', t: 'Standalone unit tests for optimizer module', n: 'Test with mock coordinates (Paris & London landmarks) to verify 0 criss-crosses.', v: '' },
+    ]
+  },
+  {
+    id: 'p3',
+    tag: 'PHASE 03 — WEEK 3',
+    title: 'Constraints Layer & Single-Day Regen',
+    items: [
+      { id: 'p3-1', cat: 'backend', t: 'Opening hours & weekday validation', n: 'Exclude places closed on specific day-of-week (e.g. Louvre closed on Tuesdays).', v: '' },
+      { id: 'p3-2', cat: 'algo', t: 'Greedy Knapsack daily time budgeting', n: 'Fit top-rated stops into daily sightseeing limit (e.g., max 8 hours including transit).', v: 'Explain how Knapsack value density formula is derived.' },
+      { id: 'p3-3', cat: 'backend', t: '"Regenerate this day" endpoint', n: 'POST /api/trips/:id/regenerate-day to re-optimize single day without touching others.', v: '' },
+    ]
+  },
+  {
+    id: 'p4',
+    tag: 'PHASE 04 — WEEK 4',
+    title: 'Weather Awareness & UI Interactive Map',
+    items: [
+      { id: 'p4-1', cat: 'api', t: 'OpenWeather API integration', n: 'Fetch 5-day forecast for destination city coordinates.', v: '' },
+      { id: 'p4-2', cat: 'algo', t: 'Rule-based outdoor → indoor swap logic', n: 'If rain > 60%, automatically replace parks/beaches with nearest museums/galleries.', v: 'Highlight as smart USP in final viva!' },
+      { id: 'p4-3', cat: 'frontend', t: 'Day Tabs & Timeline Stop Cards UI', n: 'Interactive day switcher, opening hours pill, time slots, and duration badges.', v: '' },
+      { id: 'p4-4', cat: 'frontend', t: 'Leaflet.js + OpenStreetMap interactive map', n: 'Numbered markers matching stop timeline and polyline routes connecting each stop.', v: 'Explain why Leaflet + OpenStreetMap was chosen over Google Maps SDK (cost, privacy).' },
+    ]
+  },
+  {
+    id: 'p5',
+    tag: 'PHASE 05 — WEEK 5',
+    title: 'Trip CRUD, Fallbacks & Polish',
+    items: [
+      { id: 'p5-1', cat: 'backend', t: 'Save / edit / delete trips (Full CRUD)', n: 'Save customized itineraries to user account in MongoDB.', v: '' },
+      { id: 'p5-2', cat: 'frontend', t: 'Instagram location deep-linking', n: 'Add legal direct link-out to Instagram hashtag/location explore page.', v: '' },
+      { id: 'p5-3', cat: 'frontend', t: 'Loading skeletons & optimistic UI feedback', n: 'Skeleton cards during generation and smooth toast alerts.', v: '' },
+    ]
+  },
+  {
+    id: 'p6',
+    tag: 'PHASE 06 — WEEK 6',
+    title: 'Testing, Report & Viva Rehearsal',
+    items: [
+      { id: 'p6-1', cat: 'backend', t: 'End-to-end testing & edge case fixes', n: 'Test 1-day, 3-day, and 7-day trips with extreme budgets and paces.', v: '' },
+      { id: 'p6-2', cat: 'viva', t: 'Project report with architecture diagrams', n: 'Include algorithm flowcharts, complexity analysis, and database schemas.', v: '' },
+      { id: 'p6-3', cat: 'viva', t: 'Demo rehearsal with pre-cached cities', n: 'Pre-seed Paris, Tokyo, and New York in DB so live demo is instant & offline-proof.', v: 'Essential: Have local seed script ready.' },
+    ]
+  }
+];
+
+/* ----------------------------------------------------
+   2. PROTOTYPE DATA (PARIS 3-DAY ITINERARY)
+   ---------------------------------------------------- */
+const PROTOTYPE_DAYS = {
+  1: {
+    title: "Historic Heart & Icons",
+    cluster: "Cluster 1 (Central Paris)",
+    stopsCount: 4,
+    distance: "4.2 km",
+    transitTime: "~35 mins",
+    stops: [
+      {
+        num: 1,
+        name: "Louvre Museum",
+        time: "09:30 AM - 12:30 PM",
+        type: "Museum / Art",
+        isIndoor: true,
+        duration: "3.0 hrs",
+        cost: "€17 entry",
+        status: "Open · Closes 6:00 PM",
+        desc: "World's largest art museum housing the Mona Lisa and Venus de Milo.",
+        lat: 48.8606, lng: 2.3376,
+        insta: "https://www.instagram.com/explore/locations/213009386/louvre-museum/"
+      },
+      {
+        num: 2,
+        name: "Sainte-Chapelle",
+        time: "01:00 PM - 02:15 PM",
+        type: "Gothic Landmark",
+        isIndoor: true,
+        duration: "1.2 hrs",
+        cost: "€11.50 entry",
+        status: "Open · Closes 7:00 PM",
+        desc: "Famous 13th-century royal chapel with breathtaking stained glass windows.",
+        lat: 48.8554, lng: 2.3450,
+        insta: "https://www.instagram.com/explore/locations/213038446/sainte-chapelle/"
+      },
+      {
+        num: 3,
+        name: "Notre-Dame Cathedral & Île de la Cité",
+        time: "02:30 PM - 04:00 PM",
+        type: "Historic Center",
+        isIndoor: false,
+        duration: "1.5 hrs",
+        cost: "Free exterior",
+        status: "Public Access",
+        desc: "Historic medieval island with Parisian riverside promenade and cathedral plaza.",
+        lat: 48.8530, lng: 2.3499,
+        insta: "https://www.instagram.com/explore/locations/213233261/notre-dame-de-paris/"
+      },
+      {
+        num: 4,
+        name: "Pont Neuf & Seine Sunset Cruise",
+        time: "05:00 PM - 06:30 PM",
+        type: "Scenic River Cruise",
+        isIndoor: false,
+        duration: "1.5 hrs",
+        cost: "€15 ticket",
+        status: "Departures every 30m",
+        desc: "Golden hour boat cruise along the Seine viewing monuments illuminated at twilight.",
+        lat: 48.8570, lng: 2.3414,
+        insta: "https://www.instagram.com/explore/tags/seinecruise/"
+      }
+    ]
+  },
+  2: {
+    title: "Art, Gardens & River (Rain Swap Available)",
+    cluster: "Cluster 2 (Left Bank & Rive Gauche)",
+    stopsCount: 4,
+    distance: "3.8 km",
+    transitTime: "~28 mins",
+    stops: [
+      {
+        num: 1,
+        name: "Tuileries Garden",
+        swappedName: "Musée d'Orsay (Indoor Rain Swap)",
+        time: "09:30 AM - 11:30 AM",
+        type: "Royal Garden / Outdoor Walk",
+        swappedType: "Impressionist Art Museum",
+        isIndoor: false,
+        swappedIndoor: true,
+        duration: "2.0 hrs",
+        cost: "Free entrance",
+        swappedCost: "€16 entry",
+        status: "Open · Closes 9:00 PM",
+        desc: "Lush classical French gardens connecting the Louvre to Place de la Concorde.",
+        swappedDesc: "World-renowned collection of Monet, Van Gogh, and Degas inside a grand Beaux-Arts railway station.",
+        lat: 48.8638, lng: 2.3275,
+        swappedLat: 48.8599, swappedLng: 2.3265,
+        isSwappable: true,
+        insta: "https://www.instagram.com/explore/locations/213568910/jardin-des-tuileries/"
+      },
+      {
+        num: 2,
+        name: "Place de la Concorde & Luxor Obelisk",
+        time: "11:45 AM - 12:30 PM",
+        type: "Public Monument",
+        isIndoor: false,
+        duration: "45 mins",
+        cost: "Free",
+        status: "Open 24h",
+        desc: "Grand historic square featuring the 3,300-year-old Egyptian obelisk.",
+        lat: 48.8656, lng: 2.3212,
+        insta: "https://www.instagram.com/explore/tags/placedelaconcorde/"
+      },
+      {
+        num: 3,
+        name: "Eiffel Tower & Champ de Mars",
+        time: "02:00 PM - 04:30 PM",
+        type: "World Wonder",
+        isIndoor: false,
+        duration: "2.5 hrs",
+        cost: "€26 summit lift",
+        status: "Open · Closes 11:45 PM",
+        desc: "Iconic wrought-iron lattice tower with panoramic views over all Paris.",
+        lat: 48.8584, lng: 2.2945,
+        insta: "https://www.instagram.com/explore/locations/212999109/eiffel-tower-paris-france/"
+      },
+      {
+        num: 4,
+        name: "Trocadéro Viewpoint Plaza",
+        time: "05:00 PM - 06:15 PM",
+        type: "Panoramic Lookout",
+        isIndoor: false,
+        duration: "1.2 hrs",
+        cost: "Free",
+        status: "Open 24h",
+        desc: "Best direct vantage point across the Seine for Eiffel Tower evening light show.",
+        lat: 48.8623, lng: 2.2881,
+        insta: "https://www.instagram.com/explore/tags/trocadero/"
+      }
+    ]
+  },
+  3: {
+    title: "Montmartre & Bohemian Heights",
+    cluster: "Cluster 3 (Northern Heights)",
+    stopsCount: 4,
+    distance: "3.5 km",
+    transitTime: "~32 mins",
+    stops: [
+      {
+        num: 1,
+        name: "Sacré-Cœur Basilica",
+        time: "09:00 AM - 11:00 AM",
+        type: "Hilltop Basilica",
+        isIndoor: true,
+        duration: "2.0 hrs",
+        cost: "Free basilica, €7 dome",
+        status: "Open · Closes 10:30 PM",
+        desc: "Dazzling white Romano-Byzantine basilica perched atop the highest summit in Paris.",
+        lat: 48.8867, lng: 2.3431,
+        insta: "https://www.instagram.com/explore/locations/213038622/sacre-coeur-paris/"
+      },
+      {
+        num: 2,
+        name: "Place du Tertre Artist Square",
+        time: "11:15 AM - 12:30 PM",
+        type: "Bohemian Village Square",
+        isIndoor: false,
+        duration: "1.2 hrs",
+        cost: "Free walking",
+        status: "Open active daytime",
+        desc: "Cobblestoned square filled with portrait painters, caricaturists, and historic cafes.",
+        lat: 48.8865, lng: 2.3408,
+        insta: "https://www.instagram.com/explore/tags/placedutertre/"
+      },
+      {
+        num: 3,
+        name: "Moulin de la Galette & Rue Lepic",
+        time: "01:30 PM - 03:00 PM",
+        type: "Historic Windmill & Bistro",
+        isIndoor: true,
+        duration: "1.5 hrs",
+        cost: "Lunch €20-35",
+        status: "Open for lunch",
+        desc: "Historic 17th-century windmill immortalized by Renoir and Van Gogh.",
+        lat: 48.8876, lng: 2.3364,
+        insta: "https://www.instagram.com/explore/tags/moulindelagalette/"
+      },
+      {
+        num: 4,
+        name: "Moulin Rouge & Pigalle Quarter",
+        time: "04:30 PM - 06:30 PM",
+        type: "Cabaret Landmark",
+        isIndoor: true,
+        duration: "2.0 hrs",
+        cost: "Photos free / Show €90",
+        status: "Evening show at 7PM",
+        desc: "Famous birthplace of the French can-can with iconic red windmill facade.",
+        lat: 48.8841, lng: 2.3322,
+        insta: "https://www.instagram.com/explore/tags/moulinrouge/"
+      }
+    ]
+  }
+};
+
+/* State variables */
+let activeDay = 1;
+let isRainSimulated = false;
+let checkedTasks = new Set();
+let openPhases = new Set(['p0', 'p1']);
+let currentCategoryFilter = 'all';
+let mapInstance = null;
+let mapMarkers = [];
+let mapPolyline = null;
+
+/* ----------------------------------------------------
+   3. VIEW SWITCHER
+   ---------------------------------------------------- */
+function switchView(viewId, btnEl) {
+  document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  
+  const target = document.getElementById(viewId);
+  if (target) target.classList.add('active');
+  if (btnEl) btnEl.classList.add('active');
+
+  if (viewId === 'protoView') {
+    setTimeout(() => {
+      if (mapInstance) mapInstance.invalidateSize();
+      else initMap();
+    }, 150);
+  } else if (viewId === 'algoView') {
+    setTimeout(() => {
+      drawKMeansCanvas();
+      drawTSPCanvas(false);
+    }, 100);
+  }
+}
+
+/* ----------------------------------------------------
+   4. LEAFLET MAP & PROTOTYPE RENDERING
+   ---------------------------------------------------- */
+function initMap() {
+  const mapEl = document.getElementById('itineraryMap');
+  if (!mapEl || mapInstance) return;
+
+  // Initialize Leaflet Map centered on Paris
+  mapInstance = L.map('itineraryMap', {
+    zoomControl: true,
+    attributionControl: false
+  }).setView([48.8584, 2.3275], 13);
+
+  // Clean CartoDB Dark Matter / Positron tiles for high-tech aesthetic
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19
+  }).addTo(mapInstance);
+
+  renderPrototypeDay(activeDay);
+}
+
+function selectPrototypeDay(dayNum) {
+  activeDay = dayNum;
+  document.querySelectorAll('.day-tab-btn').forEach((btn, idx) => {
+    btn.classList.toggle('active', (idx + 1) === dayNum);
+  });
+  renderPrototypeDay(dayNum);
+}
+
+function renderPrototypeDay(dayNum) {
+  const dayData = PROTOTYPE_DAYS[dayNum];
+  if (!dayData) return;
+
+  // Update summary metrics
+  document.getElementById('protoStopsCount').textContent = `${dayData.stops.length} Locations`;
+  document.getElementById('protoTransitTime').textContent = dayData.transitTime;
+  document.getElementById('protoDistance').textContent = dayData.distance;
+  document.getElementById('mapDayHeading').textContent = `Day ${dayNum} Route (${dayData.cluster})`;
+
+  // Render Stop Cards
+  const container = document.getElementById('stopsTimelineList');
+  container.innerHTML = '';
+
+  const latLngs = [];
+
+  dayData.stops.forEach((stop, index) => {
+    const isSwapped = (isRainSimulated && dayNum === 2 && stop.isSwappable);
+    
+    const name = isSwapped ? stop.swappedName : stop.name;
+    const type = isSwapped ? stop.swappedType : stop.type;
+    const isIndoor = isSwapped ? stop.swappedIndoor : stop.isIndoor;
+    const cost = isSwapped ? stop.swappedCost : stop.cost;
+    const desc = isSwapped ? stop.swappedDesc : stop.desc;
+    const lat = isSwapped ? stop.swappedLat : stop.lat;
+    const lng = isSwapped ? stop.swappedLng : stop.lng;
+
+    latLngs.push([lat, lng]);
+
+    const card = document.createElement('div');
+    card.className = `stop-card ${isSwapped ? 'swapped' : ''}`;
+    card.onclick = () => focusMapMarker(index, lat, lng);
+
+    card.innerHTML = `
+      <div class="stop-pin">${stop.num}</div>
+      <div class="stop-inner">
+        <div class="stop-header">
+          <span class="stop-name">${name}</span>
+          <span class="stop-time-badge">${stop.time}</span>
+        </div>
+        <div class="stop-meta">
+          <span class="stop-badge ${isIndoor ? 'badge-indoor' : 'badge-outdoor'}">
+            ${isIndoor ? '🏛️ Indoor Protected' : '☀️ Scenic Outdoor'}
+          </span>
+          ${isSwapped ? `<span class="stop-badge badge-swap">🌧️ Weather Swapped!</span>` : ''}
+          <span>⏱️ ${stop.duration}</span>
+          <span>💶 ${cost}</span>
+          <span style="color: var(--emerald);">● ${stop.status}</span>
+        </div>
+        <div class="stop-desc">${desc}</div>
+        <div class="stop-actions">
+          <a class="stop-link" href="${stop.insta}" target="_blank" onclick="event.stopPropagation()">
+            <span>📸 View on Instagram</span> ↗
+          </a>
+          <span style="color: var(--text-dim);">·</span>
+          <span style="color: var(--teal); cursor: pointer;" onclick="simulateSingleStopRegen(${index})">
+            🔄 Swap with Alternative
+          </span>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  // Update Leaflet Map Markers and Polyline
+  if (mapInstance) {
+    // Clear existing
+    mapMarkers.forEach(m => mapInstance.removeLayer(m));
+    mapMarkers = [];
+    if (mapPolyline) mapInstance.removeLayer(mapPolyline);
+
+    // Add new custom numbered markers
+    latLngs.forEach((coord, idx) => {
+      const stop = dayData.stops[idx];
+      const isSwapped = (isRainSimulated && dayNum === 2 && stop.isSwappable);
+      const name = isSwapped ? stop.swappedName : stop.name;
+
+      const iconHtml = `
+        <div style="background: ${isSwapped ? '#F59E0B' : '#0F172A'}; color: ${isSwapped ? '#000' : '#2DD4BF'}; border: 2px solid ${isSwapped ? '#F59E0B' : '#2DD4BF'}; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: monospace; font-size: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+          ${idx + 1}
+        </div>
+      `;
+
+      const customIcon = L.divIcon({
+        html: iconHtml,
+        className: 'custom-leaflet-pin',
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+
+      const marker = L.marker(coord, { icon: customIcon })
+        .addTo(mapInstance)
+        .bindPopup(`<b>Stop ${idx + 1}: ${name}</b><br><span style="font-size:11px; color:#666;">${stop.time}</span>`);
+      
+      mapMarkers.push(marker);
+    });
+
+    // Draw route polyline with smooth neon teal styling
+    mapPolyline = L.polyline(latLngs, {
+      color: isRainSimulated && dayNum === 2 ? '#F59E0B' : '#2DD4BF',
+      weight: 3.5,
+      dashArray: '6, 6',
+      opacity: 0.85
+    }).addTo(mapInstance);
+
+    // Fit map bounds
+    const bounds = L.latLngBounds(latLngs);
+    mapInstance.fitBounds(bounds, { padding: [40, 40] });
+  }
+}
+
+function focusMapMarker(index, lat, lng) {
+  if (mapInstance && mapMarkers[index]) {
+    mapInstance.setView([lat, lng], 15, { animate: true });
+    mapMarkers[index].openPopup();
+  }
+}
+
+function toggleRainSimulation() {
+  isRainSimulated = !isRainSimulated;
+  
+  const btn = document.getElementById('btnWeatherToggle');
+  const banner = document.getElementById('weatherAlertBanner');
+  const icon = document.getElementById('weatherIcon');
+  const title = document.getElementById('weatherTitle');
+  const sub = document.getElementById('weatherSub');
+
+  if (isRainSimulated) {
+    btn.textContent = 'Revert to Clear Weather ☀️';
+    btn.style.background = '#34D399';
+    btn.style.color = '#000';
+    icon.textContent = '🌧️';
+    title.textContent = 'Rain Alert Triggered (85% Precipitation Forecast on Day 2)';
+    sub.textContent = 'Auto-Swap Activated: Tuileries Outdoor Gardens replaced with Musée d’Orsay Indoor Museum!';
+    
+    document.getElementById('day2ThemeLabel').textContent = 'Art & Indoor Museums (Rain Mode)';
+    selectPrototypeDay(2);
+  } else {
+    btn.textContent = 'Simulate Rain on Day 2 🌧️';
+    btn.style.background = '#F59E0B';
+    btn.style.color = '#1A0F00';
+    icon.textContent = '🌦️';
+    title.textContent = 'Weather Awareness Engine Active';
+    sub.textContent = 'Click the toggle to simulate an OpenWeather 85% Rain Forecast trigger and watch the Day 2 outdoor stop auto-swap!';
+    
+    document.getElementById('day2ThemeLabel').textContent = 'Art & Garden Walk';
+    renderPrototypeDay(activeDay);
+  }
+}
+
+function simulateSingleStopRegen(index) {
+  alert(`🔄 "Regenerate Stop" called for Stop ${index + 1}!\nIn your backend API, this calls /api/trips/:id/regenerate-stop to pick the next best ranked POI from the same geographic cluster while respecting opening hours.`);
+}
+
+function regeneratePrototypeData() {
+  alert('🔄 Re-running K-Means Clustering & 2-Opt TSP Optimizer on destination coordinates...\nRoute recalculated with 0 crossings!');
+  renderPrototypeDay(activeDay);
+}
+
+
+/* ----------------------------------------------------
+   5. ROADMAP CHECKLIST & PERSISTENCE
+   ---------------------------------------------------- */
+function loadRoadmapProgress() {
+  try {
+    const saved = localStorage.getItem('itinerary-roadmap-progress');
+    if (saved) checkedTasks = new Set(JSON.parse(saved));
+  } catch (e) {}
+  renderRoadmap();
+}
+
+function saveRoadmapProgress() {
+  try {
+    localStorage.setItem('itinerary-roadmap-progress', JSON.stringify([...checkedTasks]));
+  } catch (e) {}
+}
+
+function toggleTask(id) {
+  if (checkedTasks.has(id)) checkedTasks.delete(id);
+  else checkedTasks.add(id);
+  
+  saveRoadmapProgress();
+  renderRoadmap();
+}
+
+function togglePhaseAccordion(phaseId) {
+  if (openPhases.has(phaseId)) openPhases.delete(phaseId);
+  else openPhases.add(phaseId);
+  renderRoadmap();
+}
+
+function expandAllPhases(expand) {
+  if (expand) {
+    openPhases = new Set(ROADMAP_DATA.map(p => p.id));
+  } else {
+    openPhases.clear();
+  }
+  renderRoadmap();
+}
+
+function filterRoadmap(cat, btnEl) {
+  currentCategoryFilter = cat;
+  document.querySelectorAll('.f-pill').forEach(btn => btn.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  renderRoadmap();
+}
+
+function resetProgress() {
+  if (confirm('Are you sure you want to reset all checked progress?')) {
+    checkedTasks.clear();
+    saveRoadmapProgress();
+    renderRoadmap();
+  }
+}
+
+function renderRoadmap() {
+  const container = document.getElementById('phasesContainer');
+  container.innerHTML = '';
+
+  let totalTasks = 0;
+  let doneTasks = 0;
+
+  ROADMAP_DATA.forEach(phase => {
+    const pTotal = phase.items.length;
+    const pDone = phase.items.filter(i => checkedTasks.has(i.id)).length;
+    totalTasks += pTotal;
+    doneTasks += pDone;
+
+    const isOpen = openPhases.has(phase.id);
+    const isComplete = (pDone === pTotal && pTotal > 0);
+    const isActive = (pDone > 0 && !isComplete);
+
+    // Filter items according to category
+    const filteredItems = phase.items.filter(item => {
+      if (currentCategoryFilter === 'all') return true;
+      if (currentCategoryFilter === 'algo') return item.cat === 'algo';
+      if (currentCategoryFilter === 'backend') return item.cat === 'backend';
+      if (currentCategoryFilter === 'frontend') return item.cat === 'frontend' || item.cat === 'api';
+      if (currentCategoryFilter === 'viva') return item.v && item.v.length > 0;
+      return true;
+    });
+
+    if (currentCategoryFilter !== 'all' && filteredItems.length === 0) return;
+
+    const phaseEl = document.createElement('div');
+    phaseEl.className = `phase-block ${isOpen ? 'open' : ''} ${isComplete ? 'complete' : ''} ${isActive ? 'active' : ''}`;
+
+    phaseEl.innerHTML = `
+      <button class="phase-header-btn" onclick="togglePhaseAccordion('${phase.id}')">
+        <div class="phase-header-left">
+          <div class="phase-status-indicator">${isComplete ? '✓' : ''}</div>
+          <div class="phase-title-group">
+            <span class="phase-tag-text">${phase.tag}</span>
+            <span class="phase-main-title">${phase.title}</span>
+          </div>
+        </div>
+        <div class="phase-header-right">
+          <span class="phase-count-badge">${pDone}/${pTotal} done</span>
+          <span class="phase-chevron">›</span>
+        </div>
+      </button>
+
+      <div class="phase-items-container">
+        ${filteredItems.map(item => {
+          const isChecked = checkedTasks.has(item.id);
+          return `
+            <div class="task-row ${isChecked ? 'checked' : ''}" onclick="toggleTask('${item.id}')">
+              <div class="task-checkbox"></div>
+              <div class="task-content">
+                <div class="task-top">
+                  <span class="task-text">${item.t}</span>
+                  <span class="task-cat-badge cat-${item.cat}">${item.cat}</span>
+                </div>
+                ${item.n ? `<div class="task-note">${item.n}</div>` : ''}
+                ${item.v ? `<div class="viva-tip-box">🎓 <strong>Viva Tip:</strong> ${item.v}</div>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    container.appendChild(phaseEl);
+  });
+
+  const pct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+  document.getElementById('doneCount').textContent = doneTasks;
+  document.getElementById('totalCount').textContent = totalTasks;
+  document.getElementById('pctCount').textContent = `${pct}%`;
+  document.getElementById('barFill').style.width = `${pct}%`;
+  document.getElementById('topProgressStat').textContent = `${pct}%`;
+}
+
+
+/* ----------------------------------------------------
+   6. ALGORITHM LAB CANVAS VISUALIZERS
+   ---------------------------------------------------- */
+// Canvas 1: K-Means Clustering Visualizer
+const KMEANS_POINTS = [
+  { x: 70, y: 60, name: "Louvre" },
+  { x: 95, y: 80, name: "Notre Dame" },
+  { x: 60, y: 100, name: "Sainte Chapelle" },
+  { x: 110, y: 50, name: "Pompidou" },
+  { x: 260, y: 50, name: "Sacré-Cœur" },
+  { x: 280, y: 75, name: "Moulin Rouge" },
+  { x: 310, y: 60, name: "Place du Tertre" },
+  { x: 240, y: 90, name: "Lepic" },
+  { x: 120, y: 170, name: "Eiffel Tower" },
+  { x: 90, y: 190, name: "Champ de Mars" },
+  { x: 150, y: 200, name: "Trocadéro" },
+  { x: 180, y: 160, name: "Musée d'Orsay" }
+];
+
+let isKMeansClustered = false;
+
+function drawKMeansCanvas() {
+  const canvas = document.getElementById('kmeansCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Colors for 3 clusters
+  const clusterColors = ['#2DD4BF', '#F59E0B', '#A78BFA'];
+
+  KMEANS_POINTS.forEach((pt, idx) => {
+    let clusterIdx = 0;
+    if (idx >= 4 && idx < 8) clusterIdx = 1;
+    else if (idx >= 8) clusterIdx = 2;
+
+    const color = isKMeansClustered ? clusterColors[clusterIdx] : '#94A3B8';
+
+    // Draw Point
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Draw Label
+    ctx.font = '10px Inter, sans-serif';
+    ctx.fillStyle = '#CBD5E1';
+    ctx.fillText(pt.name, pt.x + 8, pt.y + 3);
+  });
+
+  if (isKMeansClustered) {
+    // Draw Cluster Centroids & Hull circles
+    const centroids = [
+      { x: 83, y: 72, color: '#2DD4BF', label: 'Day 1 Centroid' },
+      { x: 272, y: 68, color: '#F59E0B', label: 'Day 2 Centroid' },
+      { x: 135, y: 180, color: '#A78BFA', label: 'Day 3 Centroid' }
+    ];
+
+    centroids.forEach((c, idx) => {
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 45, 0, Math.PI * 2);
+      ctx.strokeStyle = c.color;
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Centroid cross
+      ctx.fillStyle = c.color;
+      ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillText(`★ Day 0${idx+1}`, c.x - 22, c.y + 40);
+    });
+  }
+}
+
+function runKMeansVisual() {
+  isKMeansClustered = !isKMeansClustered;
+  document.getElementById('kmeansStatus').textContent = isKMeansClustered
+    ? '✓ Clustered: Day 1 (Teal), Day 2 (Amber), Day 3 (Violet)'
+    : '12 City Attractions · Unclustered Scatter';
+  drawKMeansCanvas();
+}
+
+
+// Canvas 2: 2-Opt TSP Optimizer Visualizer
+const TSP_NODES = [
+  { x: 50, y: 60, name: "1. Start (Hotel)" },
+  { x: 300, y: 70, name: "2. Eiffel" },
+  { x: 90, y: 190, name: "3. Louvre" },
+  { x: 320, y: 180, name: "4. Notre-Dame" },
+  { x: 190, y: 120, name: "5. Sainte-Chapelle" }
+];
+
+let is2OptOptimized = false;
+
+function drawTSPCanvas(optimized) {
+  const canvas = document.getElementById('tspCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Indices sequence for unoptimized (criss-cross) vs 2-opt untangled
+  const sequence = optimized ? [0, 1, 3, 4, 2, 0] : [0, 3, 1, 2, 4, 0];
+
+  // Draw connecting path
+  ctx.beginPath();
+  ctx.strokeStyle = optimized ? '#10B981' : '#F43F5E';
+  ctx.lineWidth = 2.5;
+  if (!optimized) ctx.setLineDash([4, 4]);
+  else ctx.setLineDash([]);
+
+  for (let i = 0; i < sequence.length; i++) {
+    const node = TSP_NODES[sequence[i]];
+    if (i === 0) ctx.moveTo(node.x, node.y);
+    else ctx.lineTo(node.x, node.y);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Draw Nodes
+  TSP_NODES.forEach((node, idx) => {
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, 7, 0, Math.PI * 2);
+    ctx.fillStyle = optimized ? '#10B981' : '#F43F5E';
+    ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.font = '10.5px Inter, sans-serif';
+    ctx.fillStyle = '#E2E8F0';
+    ctx.fillText(node.name, node.x + 10, node.y + 4);
+  });
+}
+
+function run2OptVisual() {
+  is2OptOptimized = !is2OptOptimized;
+  document.getElementById('tspStatus').textContent = is2OptOptimized
+    ? '✓ 2-Opt Result: Criss-Cross Removed · Distance -34%'
+    : 'Initial Route: Criss-Crossed Path';
+  drawTSPCanvas(is2OptOptimized);
+}
+
+
+/* ----------------------------------------------------
+   7. INITIALIZATION ON DOM READY
+   ---------------------------------------------------- */
+document.addEventListener('DOMContentLoaded', () => {
+  loadRoadmapProgress();
+  initMap();
+});
+</script>
+</body>
+</html>
